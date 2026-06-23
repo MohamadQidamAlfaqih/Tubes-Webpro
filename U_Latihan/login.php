@@ -86,7 +86,7 @@ if (isset($_POST['login'])) {
                 <input type="text" id="username" name="username" placeholder="Masukkan Username" required autocomplete="off">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="Masukkan Password" required>
-                <button type="submit" name="login">MASUK</button>
+                <button type="submit" name="login">MASUK</button>A
             </form>
             <div class="footer">© Kelompok 8 | Hidup Sehat</div>
         </div>
