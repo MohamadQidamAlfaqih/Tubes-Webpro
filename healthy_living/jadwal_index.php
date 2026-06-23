@@ -391,6 +391,7 @@ while($row = mysqli_fetch_assoc($qList)){
     <div class="nav-links">
         <a href="dashboard_user.php">Dashboard</a>
         <a href="aktivitas_index.php">Activities</a>
+        <a href="latihan_index.php">Latihan</a>
         <a class="active" href="jadwal_index.php">Calendar</a>
         <a href="reminder_index.php">Reminders</a>
     </div>
@@ -489,7 +490,7 @@ while($row = mysqli_fetch_assoc($qList)){
                 <td><?= htmlspecialchars($row['waktu_mulai']) ?></td>
                 <td>
                     <a class="detail-link" href="jadwal_edit.php?id=<?= $row['id_jadwal'] ?>">Edit</a>
-                    <a class="hapus-link" href="jadwal_hapus.php?id=<?= $row['id_jadwal'] ?>" onclick="return confirm('Yakin ingin menghapus jadwal ini?')">Hapus</a>
+                    <a class="hapus-link" href="jadwal_hapus.php?id=<?= $row['id_jadwal'] ?>" onclick="return konfirmasiHapus(this, 'jadwal ini')">Hapus</a>
                 </td>
             </tr>
             <?php } ?>
@@ -509,6 +510,127 @@ while($row = mysqli_fetch_assoc($qList)){
         <a href="#">Contact Us</a>
     </div>
 </footer>
+
+
+<!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+<div id="modalHapus" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:30px; max-width:360px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <div style="font-size:36px; margin-bottom:10px;">🗑️</div>
+        <h3 style="margin:0 0 8px; color:#1f2430;">Hapus Data?</h3>
+        <p id="pesanModal" style="color:#8a93a3; font-size:13px; margin:0 0 20px;">Yakin ingin menghapus data ini?</p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button onclick="tutupModal()" style="padding:10px 20px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; font-size:13px;">Batal</button>
+            <a id="linkHapus" href="#" style="padding:10px 20px; background:#dc3545; color:#fff; border-radius:8px; font-size:13px; text-decoration:none;">Ya, Hapus</a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST NOTIFIKASI ===== -->
+<div id="toast" style="display:none; position:fixed; bottom:24px; right:24px; background:#22c55e; color:#fff;
+     padding:12px 20px; border-radius:8px; font-size:13px; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+    ✅ Jadwal berhasil disimpan!
+</div>
+
+<script>
+// ===== 1. VALIDASI FORM SEBELUM SUBMIT =====
+// Mengecek apakah semua kolom form sudah diisi sebelum dikirim
+document.querySelector('form').addEventListener('submit', function(e) {
+    var hari     = document.querySelector('select[name="hari"]').value;
+    var waktu    = document.querySelector('input[name="waktu_mulai"]').value;
+    var kegiatan = document.querySelector('input[name="jenis_kegiatan"]').value.trim();
+
+    // Jika ada yang kosong, tampilkan peringatan dan batalkan submit
+    if (!hari || !waktu || !kegiatan) {
+        e.preventDefault();
+        tampilkanToast('⚠️ Semua kolom harus diisi!', '#f59e0b');
+        return;
+    }
+
+    // Jika semua terisi, tampilkan toast sukses
+    tampilkanToast('✅ Jadwal berhasil disimpan!', '#22c55e');
+});
+
+// ===== 2. KONFIRMASI HAPUS DENGAN MODAL =====
+// Menampilkan modal konfirmasi sebelum menghapus jadwal
+function konfirmasiHapus(elLink, namaData) {
+    document.getElementById('pesanModal').textContent = 'Yakin ingin menghapus ' + namaData + '?';
+    document.getElementById('linkHapus').href = elLink.href;
+    document.getElementById('modalHapus').style.display = 'flex';
+    return false; // mencegah link langsung terbuka
+}
+
+// Menutup modal jika tombol Batal diklik
+function tutupModal() {
+    document.getElementById('modalHapus').style.display = 'none';
+}
+
+// Menutup modal jika klik di luar kotak modal
+document.getElementById('modalHapus').addEventListener('click', function(e) {
+    if (e.target === this) tutupModal();
+});
+
+// ===== 3. TOAST NOTIFIKASI =====
+// Menampilkan pesan notifikasi kecil di pojok kanan bawah
+function tampilkanToast(pesan, warna) {
+    var toast = document.getElementById('toast');
+    toast.textContent = pesan;
+    toast.style.background = warna;
+    toast.style.display = 'block';
+
+    // Toast otomatis hilang setelah 3 detik
+    setTimeout(function() {
+        toast.style.display = 'none';
+    }, 3000);
+}
+
+// ===== 4. FILTER JADWAL BERDASARKAN HARI =====
+// Menambahkan tombol filter di atas tabel jadwal
+var hariList = ['Semua', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+var filterDiv = document.createElement('div');
+filterDiv.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;';
+
+hariList.forEach(function(hari) {
+    var btn = document.createElement('button');
+    btn.textContent = hari;
+    btn.dataset.hari = hari;
+    btn.style.cssText = 'padding:5px 14px; border-radius:20px; border:1px solid #edeff2; background:#fff; font-size:12px; cursor:pointer;';
+
+    // Tombol "Semua" aktif secara default
+    if (hari === 'Semua') btn.style.background = '#22c55e', btn.style.color = '#fff', btn.style.border = '1px solid #22c55e';
+
+    btn.addEventListener('click', function() {
+        // Reset semua tombol ke style default
+        filterDiv.querySelectorAll('button').forEach(function(b) {
+            b.style.background = '#fff';
+            b.style.color = '#000';
+            b.style.border = '1px solid #edeff2';
+        });
+        // Tandai tombol yang diklik sebagai aktif
+        btn.style.background = '#22c55e';
+        btn.style.color = '#fff';
+        btn.style.border = '1px solid #22c55e';
+
+        // Tampilkan/sembunyikan baris tabel sesuai hari yang dipilih
+        var rows = document.querySelectorAll('table tr:not(:first-child)');
+        rows.forEach(function(row) {
+            var badge = row.querySelector('.day-badge');
+            if (!badge) return;
+            if (hari === 'Semua' || badge.textContent.trim() === hari) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    filterDiv.appendChild(btn);
+});
+
+// Sisipkan tombol filter tepat di atas tabel
+var tabel = document.querySelector('table');
+if (tabel) tabel.parentNode.insertBefore(filterDiv, tabel);
+</script>
 
 </body>
 </html>
