@@ -175,6 +175,7 @@ td{
     <div class="nav-links">
         <a href="dashboard_user.php">Dashboard</a>
         <a href="aktivitas_index.php">Activities</a>
+        <a href="latihan_index.php">Latihan</a>
         <a href="jadwal_index.php">Calendar</a>
         <a class="active" href="reminder_index.php">Reminders</a>
     </div>
@@ -219,7 +220,7 @@ td{
                 </td>
                 <td>
                     <a class="edit" href="reminder_edit.php?id=<?= $row['id_reminder'] ?>">Edit</a>
-                    <a class="hapus" href="reminder_hapus.php?id=<?= $row['id_reminder'] ?>">Hapus</a>
+                    <a class="hapus" href="reminder_hapus.php?id=<?= $row['id_reminder'] ?>" onclick="return konfirmasiHapus(this, 'reminder ini')">Hapus</a>
                 </td>
             </tr>
             <?php } ?>
@@ -229,6 +230,119 @@ td{
     </div>
 
 </div>
+
+
+<!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+<div id="modalHapus" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:30px; max-width:360px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <div style="font-size:36px; margin-bottom:10px;">🗑️</div>
+        <h3 style="margin:0 0 8px; color:#1f2430;">Hapus Reminder?</h3>
+        <p id="pesanModal" style="color:#8a93a3; font-size:13px; margin:0 0 20px;">Yakin ingin menghapus reminder ini?</p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button onclick="tutupModal()" style="padding:10px 20px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; font-size:13px;">Batal</button>
+            <a id="linkHapus" href="#" style="padding:10px 20px; background:#dc3545; color:#fff; border-radius:8px; font-size:13px; text-decoration:none;">Ya, Hapus</a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST NOTIFIKASI ===== -->
+<div id="toast" style="display:none; position:fixed; bottom:24px; right:24px; background:#22c55e; color:#fff;
+     padding:12px 20px; border-radius:8px; font-size:13px; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+</div>
+
+<script>
+// ===== 1. KONFIRMASI HAPUS DENGAN MODAL =====
+// Menampilkan modal konfirmasi sebelum menghapus reminder
+function konfirmasiHapus(elLink, namaData) {
+    document.getElementById('pesanModal').textContent = 'Yakin ingin menghapus ' + namaData + '?';
+    document.getElementById('linkHapus').href = elLink.href;
+    document.getElementById('modalHapus').style.display = 'flex';
+    return false; // mencegah link langsung terbuka
+}
+
+// Menutup modal jika tombol Batal diklik
+function tutupModal() {
+    document.getElementById('modalHapus').style.display = 'none';
+}
+
+// Menutup modal jika klik di luar kotak modal
+document.getElementById('modalHapus').addEventListener('click', function(e) {
+    if (e.target === this) tutupModal();
+});
+
+// ===== 2. FILTER REMINDER BERDASARKAN STATUS =====
+// Menambahkan tombol filter Semua / Aktif / Nonaktif di atas tabel
+var statusList = ['Semua', 'aktif', 'nonaktif'];
+var labelBtn   = { 'Semua': 'Semua', 'aktif': '🟢 Aktif', 'nonaktif': '🔴 Nonaktif' };
+
+var filterDiv = document.createElement('div');
+filterDiv.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;';
+
+statusList.forEach(function(status) {
+    var btn = document.createElement('button');
+    btn.textContent = labelBtn[status];
+    btn.dataset.status = status;
+    btn.style.cssText = 'padding:5px 14px; border-radius:20px; border:1px solid #edeff2; background:#fff; font-size:12px; cursor:pointer;';
+
+    // Tombol "Semua" aktif secara default
+    if (status === 'Semua') btn.style.background = '#22c55e', btn.style.color = '#fff', btn.style.border = '1px solid #22c55e';
+
+    btn.addEventListener('click', function() {
+        // Reset semua tombol ke style default
+        filterDiv.querySelectorAll('button').forEach(function(b) {
+            b.style.background = '#fff';
+            b.style.color = '#000';
+            b.style.border = '1px solid #edeff2';
+        });
+        // Tandai tombol yang diklik sebagai aktif
+        btn.style.background = '#22c55e';
+        btn.style.color = '#fff';
+        btn.style.border = '1px solid #22c55e';
+
+        // Tampilkan/sembunyikan baris tabel sesuai status yang dipilih
+        var rows = document.querySelectorAll('table tr:not(:first-child)');
+        rows.forEach(function(row) {
+            var statusCell = row.querySelector('td:nth-child(4)');
+            if (!statusCell) return;
+            if (status === 'Semua' || statusCell.textContent.trim() === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    filterDiv.appendChild(btn);
+});
+
+// Sisipkan tombol filter tepat di atas tabel
+var tabel = document.querySelector('table');
+if (tabel) tabel.parentNode.insertBefore(filterDiv, tabel);
+
+// ===== 3. TOAST NOTIFIKASI =====
+// Menampilkan pesan notifikasi kecil di pojok kanan bawah
+function tampilkanToast(pesan, warna) {
+    var toast = document.getElementById('toast');
+    toast.textContent = pesan;
+    toast.style.background = warna;
+    toast.style.display = 'block';
+
+    // Toast otomatis hilang setelah 3 detik
+    setTimeout(function() {
+        toast.style.display = 'none';
+    }, 3000);
+}
+
+// ===== 4. HIGHLIGHT BARIS REMINDER AKTIF =====
+// Memberi warna latar hijau muda pada reminder yang statusnya aktif
+document.querySelectorAll('table tr:not(:first-child)').forEach(function(row) {
+    var statusCell = row.querySelector('td:nth-child(4)');
+    if (statusCell && statusCell.textContent.trim() === 'aktif') {
+        row.style.background = '#f0fdf4'; // hijau sangat muda
+    }
+});
+</script>
 
 </body>
 </html>
