@@ -1,14 +1,12 @@
 <?php
-$host     = "localhost";
-$username = "root";
-$password = "";
-$database = "hidup_sehat";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "heathy_living";
 
-$koneksi = mysqli_connect($host, $username, $password, $database);
+$conn = mysqli_connect($host, $user, $pass, $db);
 
-if (!$koneksi) {
+if (!$conn) {
     die("Koneksi gagal: " . mysqli_connect_error());
 }
-
-mysqli_set_charset($koneksi, "utf8");
 ?>
