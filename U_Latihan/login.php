@@ -5,6 +5,7 @@ include 'koneksi.php';
 if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
     if ($_SESSION['role'] === 'admin') {
         header("Location: admin_statistik.php");
+    } else {
         header("Location: index.php");
     }
     exit();
@@ -26,7 +27,6 @@ if (isset($_POST['login'])) {
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
 
-          
             if ($row['role'] === 'admin') {
                 header("Location: admin_statistik.php");
             } else {
@@ -78,7 +78,7 @@ if (isset($_POST['login'])) {
         </div>
         <div class="kanan">
             <h2>LOGIN</h2>
-            <h4>Selamar Datang Pengguna Baru</h4>
+            <h4>Selamat Datang Pengguna Baru</h4>
             <?php if (!empty($error)): ?> <div class="error"><?= $error; ?></div>
             <?php endif; ?>
             <form method="POST">
@@ -86,7 +86,7 @@ if (isset($_POST['login'])) {
                 <input type="text" id="username" name="username" placeholder="Masukkan Username" required autocomplete="off">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="Masukkan Password" required>
-                <button type="submit" name="login">MASUK</button>A
+                <button type="submit" name="login">MASUK</button>
             </form>
             <div class="footer">© Kelompok 8 | Hidup Sehat</div>
         </div>
