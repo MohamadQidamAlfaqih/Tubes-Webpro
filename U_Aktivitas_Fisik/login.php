@@ -6,36 +6,37 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
     if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
         header("Location: admin_aktivitas.php");
     } else {
-        header("Location: aktivitas_fisik.php");
+        header("Location: altivitas_fisik.php");
     }
     exit();
 }
 
 $error = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
+if (isset($_POST['login'])) {
+    $username = mysqli_real_escape_string($conn, trim($_POST['username']));
+    $password = trim($_POST['password']);
 
-    $query = "SELECT * FROM admin WHERE username = '$username' AND password = '$password'";
+    $query = "SELECT * FROM admin WHERE username = '$username'";
     $result = mysqli_query($conn, $query);
 
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
         
-        $_SESSION['user_logged_in'] = true;
-        $_SESSION['username'] = $row['username']; 
-        $_SESSION['role'] = $row['role']; 
-        
-        if ($row['role'] === 'admin') {
-            header("Location: admin_aktivitas.php");
-        } else {
-            header("Location: aktivitas_fisik.php");
+        if ($password === $row['password']) {
+            $_SESSION['user_logged_in'] = true;
+            $_SESSION['username'] = $row['username']; 
+            $_SESSION['role'] = $row['role']; 
+            
+            if ($row['role'] === 'admin') {
+                header("Location: admin_aktivitas.php");
+            } else {
+                header("Location: altivitas_fisik.php");
+            }
+            exit();
         }
-        exit();
-    } else {
-        $error = "Username atau password salah!";
     }
+    $error = "Username atau password salah!";
 }
 ?>
 <!DOCTYPE html>
@@ -58,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group input { width: 100%; padding: 15px 18px; border: none; background-color: #edf4ed; border-radius: 12px; box-sizing: border-box; font-size: 14px; color: #333;}
         .form-group input::placeholder { color: #9cb59c; }
         .btn-submit { background-color: #349f4c; color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 15px; letter-spacing: 0.5px;}
-        .btn-submit:hover { background-color: #2a823d; }
         .footer-text { text-align: center; font-size: 12px; color: #777; margin-top: 35px; }
         .error-msg { color: #d93843; font-size: 13px; margin-bottom: 15px; font-weight: bold;}
     </style>
@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>Password</label>
                 <input type="password" name="password" placeholder="Masukkan Password" required>
             </div>
-            <button type="submit" class="btn-submit">MASUK</button>
+            <button type="submit" name="login" class="btn-submit">MASUK</button>
         </form>
         <div class="footer-text">© Kelompok 8 | Hidup Sehat</div>
     </div>
