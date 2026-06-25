@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// PROTEKSI: Jika user belum melakukan verifikasi login, kembalikan secara paksa ke login.php
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
     header("Location: login.php");
     exit();
@@ -31,6 +32,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         .btn-edit { background-color: #ffc107; color: black; margin-right: 5px; }
         .btn-hapus { background-color: #dc3545; }
         
+        /* CSS Tambahan untuk tombol Logout */
         .logout-box { text-align: center; margin-bottom: 25px; font-size: 14.5px; color: #555; background-color: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #e9ecef; }
         .btn-logout { color: #dc3545; text-decoration: none; font-weight: bold; margin-left: 5px; }
         .btn-logout:hover { text-decoration: underline; }
@@ -93,8 +95,12 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
     const KEY_API = 'LATIHAN2026';
     let semuaDataLatihan = [];
 
+    // Jalankan otomatis fungsi tampilkan data saat halaman web dibuka
     window.onload = tampilkanData;
 
+    // ===================================================
+    // 1. FUNGSI READ DATA: TAMPILKAN KE TABEL
+    // ===================================================
     function tampilkanData() {
         fetch(URL_API, {
             method: 'GET',
@@ -129,6 +135,9 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         .catch(err => console.error("Gagal memuat data API:", err));
     }
 
+    // ===================================================
+    // 2. FUNGSI CREATE & UPDATE: PROSES SUBMIT FORM
+    // ===================================================
     document.getElementById('formLatihan').addEventListener('submit', function(e) {
         e.preventDefault(); 
 
@@ -138,6 +147,8 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         const hari = document.getElementById('hari').value;
 
         const dataPaket = { id: id, nama: nama, repetisi: repetisi, hari: hari };
+
+        // Tentukan method secara dinamis: Kosong = POST, Ada ID = PUT
         let methodHTTP = (id === '') ? 'POST' : 'PUT';
 
         fetch(URL_API, {
@@ -156,6 +167,9 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         });
     });
 
+    // ===================================================
+    // 3. FUNGSI UPDATE (PERSIAPAN): MEMINDAHKAN DATA KE FORM
+    // ===================================================
     function pindahkanKeForm(id) {
         const dataTerpilih = semuaDataLatihan.find(item => item.id == id);
 
@@ -171,6 +185,9 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         }
     }
 
+    // ===================================================
+    // 4. FUNGSI DELETE: MENGHAPUS DATA
+    // ===================================================
     function hapusData(id) {
         if (confirm('Yakin ingin menghapus data latihan ini?')) {
             fetch(URL_API + '?id=' + id, {
@@ -185,6 +202,9 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
         }
     }
 
+    // ===================================================
+    // 5. FUNGSI UTILITY: MENGEMBALIKAN FORM KE SEMULA
+    // ===================================================
     function resetForm() {
         document.getElementById('id_latihan').value = '';
         document.getElementById('formLatihan').reset();

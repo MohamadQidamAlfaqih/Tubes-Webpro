@@ -2,31 +2,36 @@
 session_start();
 include 'koneksi.php';
 
+// Jika session login sudah ada, langsung alihkan pengguna sesuai hak aksesnya
 if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
     if ($_SESSION['role'] === 'admin') {
-        header("Location: admin_statistik.php");
+        header("Location: admin_statistik.php"); // Halaman dashboard statistik admin kamu
     } else {
-        header("Location: index.php");
+        header("Location: index.php"); // Halaman utama latihan populer untuk user biasa
     }
     exit();
 }
 
-$error = ""; 
+$error = ""; // REVISI: Inisialisasi variabel error agar tidak memicu Undefined Variable
+
 if (isset($_POST['login'])) {
     $username = mysqli_real_escape_string($conn, trim($_POST['username']));
     $password = trim($_POST['password']);
 
+    // Mencari data pengguna di dalam tabel admin berdasarkan username
     $sql = "SELECT * FROM admin WHERE username='$username'";
     $result = mysqli_query($conn, $sql);
 
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
 
+        // Validasi kecocokan password secara langsung (Plain Text)
         if ($password === $row['password']) {
             $_SESSION['user_logged_in'] = true;
             $_SESSION['username'] = $row['username'];
-            $_SESSION['role'] = $row['role'];
+            $_SESSION['role'] = $row['role']; // Menyimpan tingkatan akses (admin / user) ke dalam session
 
+            // Alihkan halaman berdasarkan tingkatan role
             if ($row['role'] === 'admin') {
                 header("Location: admin_statistik.php");
             } else {
@@ -78,7 +83,7 @@ if (isset($_POST['login'])) {
         </div>
         <div class="kanan">
             <h2>LOGIN</h2>
-            <h4>Selamat Datang Pengguna Baru</h4>
+            <h4>Selamar Datang Pengguna Baru</h4>
             <?php if (!empty($error)): ?> <div class="error"><?= $error; ?></div>
             <?php endif; ?>
             <form method="POST">

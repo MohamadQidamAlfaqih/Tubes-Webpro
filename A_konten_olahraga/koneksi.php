@@ -1,12 +1,14 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "db_olahraga";
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = mysqli_connect(
+    "localhost",
+    "root",
+    "",
+    "db_olahraga"
+);
 
-if ($conn->connect_error) {
-    die("Koneksi ke database gagal: " . $conn->connect_error);
+if (!$conn) {
+    die("Koneksi gagal: " . mysqli_connect_error());
 }
+
 ?>

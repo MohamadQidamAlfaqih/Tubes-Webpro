@@ -4,19 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, X-API-KEY");
 
-if (!file_exists("koneksi.php")) {
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "File koneksi.php tidak ditemukan! Periksa lokasi file Anda."]);
-    exit();
-}
-
-require_once "koneksi.php";
-
-if (!isset($conn) || !$conn) {
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Variabel koneksi database (\$conn) tidak tersedia atau gagal terhubung!"]);
-    exit();
-}
+include "koneksi.php";
 
 $api_key_valid = "LATIHAN2026";
 
@@ -41,14 +29,10 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $query = mysqli_query($conn, "SELECT * FROM latihan_populer ORDER BY id ASC");
     $data = [];
-    if ($query) {
-        while ($row = mysqli_fetch_assoc($query)) {
-            $data[] = $row;
-        }
-        echo json_encode(["status" => "success", "data" => $data]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "Gagal mengambil data: " . mysqli_error($conn)]);
+    while ($row = mysqli_fetch_assoc($query)) {
+        $data[] = $row;
     }
+    echo json_encode(["status" => "success", "data" => $data]);
     exit();
 }
 
@@ -64,7 +48,7 @@ if ($method === 'POST') {
         if (mysqli_query($conn, $sql)) {
             echo json_encode(["status" => "success", "message" => "Data latihan berhasil disimpan!"]);
         } else {
-            echo json_encode(["status" => "error", "message" => "Gagal menyimpan data: " . mysqli_error($conn)]);
+            echo json_encode(["status" => "error", "message" => "Gagal menyimpan data latihan."]);
         }
     } else {
         echo json_encode(["status" => "error", "message" => "Data input tidak lengkap."]);
@@ -85,7 +69,7 @@ if ($method === 'PUT') {
         if (mysqli_query($conn, $sql)) {
             echo json_encode(["status" => "success", "message" => "Data latihan berhasil diubah!"]);
         } else {
-            echo json_encode(["status" => "error", "message" => "Gagal mengubah data: " . mysqli_error($conn)]);
+            echo json_encode(["status" => "error", "message" => "Gagal mengubah data latihan."]);
         }
     } else {
         echo json_encode(["status" => "error", "message" => "Data update tidak lengkap."]);
@@ -100,7 +84,7 @@ if ($method === 'DELETE') {
         if (mysqli_query($conn, $sql)) {
             echo json_encode(["status" => "success", "message" => "Data latihan berhasil dihapus!"]);
         } else {
-            echo json_encode(["status" => "error", "message" => "Gagal menghapus data: " . mysqli_error($conn)]);
+            echo json_encode(["status" => "error", "message" => "Gagal menghapus data latihan."]);
         }
     } else {
         echo json_encode(["status" => "error", "message" => "ID data tidak ditemukan."]);
